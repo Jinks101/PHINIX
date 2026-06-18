@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHINIX — Engineering Intelligence for Industry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #020508;
+  --bg2:     #060c14;
+  --bg3:     #0b1420;
+  --accent:  #00b4ff;
+  --accent2: #54d6ff;
+  --accent3: #8be9fd;
+  --text:    #eaf7ff;
+  --muted:   #5a7f96;
+  --muted2:  #8aa5b7;
+  --border:  rgba(0,180,255,0.15);
+  --border2: rgba(0,180,255,0.07);
+  --glow:    rgba(0,180,255,0.25);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+#cursor {
+  position: fixed;
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  transform: translate(-50%,-50%);
+  mix-blend-mode: screen;
+}
+#cursor-ring {
+  position: fixed;
+  width: 40px; height: 40px;
+  border: 1px solid rgba(0,180,255,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transition: transform 0.4s ease, width 0.3s, height 0.3s, opacity 0.3s;
+  transform: translate(-50%,-50%);
+}
+body:hover #cursor { opacity:1; }
+
+/* ── SCROLL PROGRESS ── */
+#scroll-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent3));
+  z-index: 9997;
+  width: 0%;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 60px;
+  height: 72px;
+  background: rgba(2,5,8,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border2);
+  transition: all 0.3s;
+}
+nav.scrolled {
+  border-bottom-color: var(--border);
+  background: rgba(2,5,8,0.92);
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 3px;
+  text-decoration: none;
+}
+.nav-logo span { color: var(--accent); }
+.nav-links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--muted2);
+  text-decoration: none;
+  font-size: 0.78rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--accent); }
+.nav-cta {
+  padding: 10px 24px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  transition: all 0.25s;
+}
+.nav-cta:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: none;
+  padding: 8px;
+}
+.nav-hamburger span {
+  display: block;
+  width: 24px; height: 1.5px;
+  background: var(--text);
+  transition: all 0.3s;
+}
+
+/* ── MOBILE MENU ── */
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,5,8,0.97);
+  backdrop-filter: blur(30px);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.77,0,0.175,1);
+}
+.mobile-menu.open { transform: translateX(0); }
+.mobile-menu a {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: 4px;
+  transition: color 0.2s;
+}
+.mobile-menu a:hover { color: var(--accent); }
+
+/* ── CANVAS ── */
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ── HERO ── */
+#hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 0 8%;
+  overflow: hidden;
+  background: radial-gradient(ellipse 80% 60% at 70% 50%, rgba(0,80,160,0.18) 0%, transparent 70%),
+              linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+}
+.hero-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,180,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,180,255,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  z-index: 1;
+}
+.hero-content {
+  max-width: 800px;
+  z-index: 5;
+  position: relative;
+}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 30px; height: 1px;
+  background: var(--accent);
+}
+.hero-eyebrow .blink {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: blink 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.hero-headline {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 8.5vw, 8.5rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -2px;
+  color: var(--text);
+  margin-bottom: 32px;
+}
+.hero-headline .line-accent { color: var(--accent); }
+.hero-desc {
+  max-width: 560px;
+  font-size: 1.05rem;
+  color: var(--muted2);
+  line-height: 1.85;
+  margin-bottom: 48px;
+  font-weight: 300;
+}
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  padding: 16px 40px;
+  background: var(--accent);
+  color: var(--bg);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.15);
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+}
+.btn-primary:hover::after { transform: translateX(0); }
+.btn-primary:hover { box-shadow: 0 0 40px var(--glow); transform: translateY(-2px); }
+.btn-secondary {
+  padding: 16px 40px;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--muted2);
+  text-decoration: none;
+  font-size: 0.82rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  transition: all 0.3s;
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+.hero-metrics {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  z-index: 5;
+}
+.hero-metric {
+  text-align: right;
+}
+.hero-metric .num {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  display: block;
+}
+.hero-metric .label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* ── HORIZON ── */
+.horizon-divider {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 20%, var(--accent3) 50%, var(--accent) 80%, transparent 100%);
+  box-shadow: 0 0 20px var(--accent), 0 0 60px rgba(0,180,255,0.2);
+  overflow: visible;
+}
+.horizon-divider::before {
+  content: 'PHINIX SYSTEMS';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  background: var(--bg2);
+  padding: 0 20px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 5px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ── SECTIONS ── */
+section {
+  position: relative;
+  z-index: 1;
+}
+.section-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 120px 60px;
+}
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.section-eyebrow::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--text);
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+.section-sub {
+  font-size: 1rem;
+  color: var(--muted2);
+  max-width: 560px;
+  line-height: 1.75;
+  font-weight: 300;
+  margin-bottom: 72px;
+}
+
+/* ── MISSION ── */
+#mission {
+  background: var(--bg2);
+  border-top: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+}
+.mission-statement {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 3.2rem);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+  max-width: 900px;
+  margin-bottom: 60px;
+}
+.mission-statement em {
+  font-style: normal;
+  color: var(--accent);
+}
+.mission-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.mission-tag {
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: var(--muted2);
+  text-transform: uppercase;
+  transition: all 0.3s;
+}
+.mission-tag:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,180,255,0.05);
+}
+
+/* ── INDUSTRIES ── */
+#industries { background: var(--bg); }
+.industry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--border2);
+  border: 1px solid var(--border2);
+}
+.industry-card {
+  background: var(--bg);
+  padding: 48px 40px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s;
+  cursor: none;
+}
+.industry-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+.industry-card:hover::before { transform: scaleX(1); }
+.industry-card:hover { background: rgba(0,180,255,0.03); }
+.industry-num {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 3px;
+  margin-bottom: 24px;
+}
+.industry-icon {
+  width: 44px; height: 44px;
+  margin-bottom: 24px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+.industry-card:hover .industry-icon { opacity: 1; }
+.industry-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+.industry-card p {
+  font-size: 0.9rem;
+  color: var(--muted2);
+  line-height: 1.8;
+}
+.industry-items {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.industry-item {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 2px;
+  padding-left: 14px;
+  position: relative;
+}
+.industry-item::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* ── PROJECTS ── */
+#projects { background: var(--bg2); }
+.project-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--border2);
+}
+.project-card {
+  background: var(--bg2);
+  position: relative;
+  overflow: hidden;
+  cursor: none;
+  aspect-ratio: 16/10;
+  display: flex;
+  align-items: flex-end;
+}
+.project-card.large {
+  grid-column: 1 / -1;
+  aspect-ratio: 21/9;
+}
+.project-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--bg3);
+  transition: transform 0.6s ease;
+}
+.project-bg-visual {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  transition: opacity 0.4s;
+}
+.project-card:hover .project-bg { transform: scale(1.03); }
+.project-card:hover .project-bg-visual { opacity: 0.6; }
+.project-content {
+  position: relative;
+  z-index: 5;
+  padding: 40px;
+  width: 100%;
+  background: linear-gradient(transparent, rgba(2,5,8,0.95) 60%);
+}
+.project-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--accent);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.project-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+.project-card .large h3 { font-size: 2.2rem; }
+.project-desc {
+  font-size: 0.85rem;
+  color: var(--muted2);
+  max-width: 500px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+.project-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.project-meta span {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border: 1px solid var(--border2);
+}
+.project-arrow {
+  position: absolute;
+  top: 32px; right: 32px;
+  width: 40px; height: 40px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 1.1rem;
+  transition: all 0.3s;
+  z-index: 5;
+}
+.project-card:hover .project-arrow {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,180,255,0.08);
+}
+
+/* Project visual backgrounds */
+.pb-mine {
+  background: radial-gradient(circle at 30% 60%, rgba(0,80,120,0.5), transparent 60%),
+              radial-gradient(circle at 80% 30%, rgba(0,40,80,0.4), transparent 50%),
+              linear-gradient(135deg, #020c14, #061525);
+}
+.pb-energy {
+  background: radial-gradient(circle at 70% 40%, rgba(0,100,80,0.4), transparent 60%),
+              radial-gradient(circle at 20% 70%, rgba(0,60,40,0.3), transparent 50%),
+              linear-gradient(135deg, #020f0a, #041a10);
+}
+.pb-ai {
+  background: radial-gradient(circle at 50% 50%, rgba(60,0,120,0.4), transparent 60%),
+              radial-gradient(circle at 80% 20%, rgba(0,60,120,0.3), transparent 50%),
+              linear-gradient(135deg, #07020f, #0a0420);
+}
+.pb-automation {
+  background: radial-gradient(circle at 20% 50%, rgba(80,50,0,0.4), transparent 60%),
+              linear-gradient(135deg, #0f0802, #1a1004);
+}
+
+/* SVG animations inside project cards */
+.circuit-svg { animation: circuit-flow 3s ease-in-out infinite; }
+@keyframes circuit-flow { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+
+/* ── TECH STACK ── */
+#stack { background: var(--bg); }
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1px;
+  background: var(--border2);
+  border: 1px solid var(--border2);
+}
+.stack-item {
+  background: var(--bg);
+  padding: 28px 20px;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: none;
+  position: relative;
+  overflow: hidden;
+}
+.stack-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(0,180,255,0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.stack-item:hover::after { opacity: 1; }
+.stack-item:hover { background: rgba(0,180,255,0.04); }
+.stack-item:hover .stack-name { color: var(--accent); }
+.stack-icon {
+  width: 32px; height: 32px;
+  margin: 0 auto 12px;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stack-item:hover .stack-icon { opacity: 1; }
+.stack-name {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+
+/* ── RESEARCH LAB ── */
+#lab {
+  background: var(--bg2);
+  border-top: 1px solid var(--border2);
+}
+.lab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+.lab-nodes {
+  position: relative;
+  height: 420px;
+}
+#lab-canvas { width:100%; height:100%; }
+
+.lab-areas {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lab-area {
+  padding: 20px 24px;
+  border-left: 2px solid var(--border2);
+  transition: all 0.3s;
+  cursor: none;
+}
+.lab-area:hover, .lab-area.active {
+  border-left-color: var(--accent);
+  background: rgba(0,180,255,0.04);
+}
+.lab-area-num {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+.lab-area h4 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: color 0.3s;
+}
+.lab-area:hover h4, .lab-area.active h4 { color: var(--accent); }
+.lab-area p {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 6px;
+  display: none;
+}
+.lab-area.active p { display: block; }
+
+/* ── METRICS ── */
+#metrics { background: var(--bg3); border-top: 1px solid var(--border2); border-bottom: 1px solid var(--border2); }
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border2);
+  border: 1px solid var(--border2);
+}
+.metric-card {
+  background: var(--bg3);
+  padding: 52px 40px;
+  text-align: center;
+  transition: background 0.3s;
+}
+.metric-card:hover { background: rgba(0,180,255,0.03); }
+.metric-num {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  display: block;
+}
+.metric-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 10px;
+  display: block;
+}
+
+/* ── TIMELINE ── */
+#timeline { background: var(--bg); }
+.timeline-track {
+  position: relative;
+  padding-left: 40px;
+}
+.timeline-track::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--accent) 20%, var(--accent) 80%, transparent);
+}
+.timeline-item {
+  position: relative;
+  padding: 0 0 64px 60px;
+  opacity: 0.4;
+  transition: opacity 0.4s;
+}
+.timeline-item.active { opacity: 1; }
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -5px; top: 8px;
+  width: 11px; height: 11px;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.timeline-item.active::before {
+  background: var(--accent);
+  box-shadow: 0 0 16px var(--accent);
+}
+.timeline-year {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent);
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+}
+.timeline-item h3 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.timeline-item p {
+  font-size: 0.9rem;
+  color: var(--muted2);
+  max-width: 520px;
+  line-height: 1.7;
+}
+
+/* ── CONTACT ── */
+#contact { background: var(--bg2); border-top: 1px solid var(--border2); }
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+.contact-info p {
+  font-size: 0.9rem;
+  color: var(--muted2);
+  line-height: 1.8;
+  margin-bottom: 48px;
+}
+.contact-detail {
+  margin-bottom: 20px;
+}
+.contact-detail .label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.contact-detail .value {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+/* Terminal form */
+.terminal {
+  background: rgba(6,12,20,0.8);
+  border: 1px solid var(--border);
+  padding: 36px;
+  backdrop-filter: blur(20px);
+  position: relative;
+}
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border2);
+}
+.dot { width:10px; height:10px; border-radius:50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #febc2e; }
+.dot-g { background: #28c840; }
+.terminal-title {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 3px;
+  margin-left: auto;
+}
+
+.terminal-line {
+  margin-bottom: 20px;
+}
+.terminal-prompt {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.terminal-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.3s;
+  cursor: none;
+}
+.terminal-input:focus { border-bottom-color: var(--accent); }
+.terminal-input::placeholder { color: var(--muted); }
+textarea.terminal-input {
+  resize: none;
+  height: 80px;
+  padding: 10px 0;
+}
+.terminal-submit {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: none;
+  transition: all 0.3s;
+  margin-top: 24px;
+}
+.terminal-submit:hover {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 30px var(--glow);
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg);
+  border-top: 1px solid var(--border2);
+  padding: 80px 60px 40px;
+  max-width: 100%;
+}
+.footer-top {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(4, 1fr);
+  gap: 60px;
+  margin-bottom: 64px;
+}
+.footer-brand .logo {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+}
+.footer-brand .logo span { color: var(--accent); }
+.footer-brand p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.8;
+  max-width: 260px;
+  margin-bottom: 28px;
+}
+.footer-location {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.footer-col h5 {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.footer-col ul { list-style: none; }
+.footer-col li { margin-bottom: 10px; }
+.footer-col a {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-col a:hover { color: var(--accent); }
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 32px;
+  border-top: 1px solid var(--border2);
+}
+.footer-copy {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+.footer-socials { display: flex; gap: 16px; }
+.footer-social {
+  width: 36px; height: 36px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  transition: all 0.3s;
+}
+.footer-social:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,180,255,0.08);
+}
+
+/* ── REVEAL ANIMATIONS ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .hero-metrics { display: none; }
+  .metrics-grid { grid-template-columns: repeat(2,1fr); }
+  .lab-grid { grid-template-columns: 1fr; }
+  .lab-nodes { height: 280px; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+  .contact-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .section-inner { padding: 80px 24px; }
+  nav { padding: 0 24px; }
+  .nav-links, .nav-cta { display: none; }
+  .nav-hamburger { display: flex; }
+  .hero-headline { letter-spacing: -1px; }
+  .project-grid { grid-template-columns: 1fr; }
+  .project-card.large { grid-column: auto; aspect-ratio: 4/3; }
+  .metrics-grid { grid-template-columns: repeat(2,1fr); }
+  .footer-top { grid-template-columns: 1fr; }
+  footer { padding: 60px 24px 32px; }
+  .footer-bottom { flex-direction: column; gap: 16px; }
+  #hero { padding: 0 6%; padding-top: 80px; }
+  body { cursor: auto; }
+  #cursor, #cursor-ring { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div id="scroll-bar"></div>
+
+<!-- Navigation -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">PHIN<span>IX</span></a>
+  <ul class="nav-links">
+    <li><a href="#industries">Industries</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#stack">Technology</a></li>
+    <li><a href="#lab">Research</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Initiate Contact</a>
+  <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#industries" class="mobile-link">Industries</a>
+  <a href="#projects" class="mobile-link">Projects</a>
+  <a href="#stack" class="mobile-link">Technology</a>
+  <a href="#lab" class="mobile-link">Research</a>
+  <a href="#contact" class="mobile-link">Contact</a>
+</div>
+
+<!-- Hero -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-grid-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="blink"></div>
+      JOHANNESBURG · SOUTH AFRICA · EST. 2024
+    </div>
+    <h1 class="hero-headline">
+      ENGINEERING<br>
+      <span class="line-accent">THE FUTURE</span><br>
+      OF INDUSTRY
+    </h1>
+    <p class="hero-desc">
+      PHINIX develops intelligent systems spanning industrial automation,
+      mining technology, artificial intelligence, energy infrastructure,
+      and advanced engineering research.
+    </p>
+    <div class="hero-actions">
+      <a href="#industries" class="btn-primary">Explore Capabilities</a>
+      <a href="#projects" class="btn-secondary">View Projects</a>
+    </div>
+  </div>
+  <div class="hero-metrics">
+    <div class="hero-metric">
+      <span class="num" data-count="15">0</span>
+      <span class="label">Research Domains</span>
+    </div>
+    <div class="hero-metric">
+      <span class="num" data-count="5">0</span>
+      <span class="label">Industries Served</span>
+    </div>
+    <div class="hero-metric">
+      <span class="num">24/7</span>
+      <span class="label">Innovation Cycle</span>
+    </div>
+  </div>
+</section>
+
+<div class="horizon-divider"></div>
+
+<!-- Mission -->
+<section id="mission">
+  <div class="section-inner">
+    <div class="section-eyebrow">Mission Control</div>
+    <p class="mission-statement reveal">
+      We transform <em>complex industrial challenges</em> into intelligent systems
+      that operate at the frontier of engineering and artificial intelligence.
+    </p>
+    <div class="mission-tags">
+      <span class="mission-tag">Mining</span>
+      <span class="mission-tag">Energy</span>
+      <span class="mission-tag">Automation</span>
+      <span class="mission-tag">Artificial Intelligence</span>
+      <span class="mission-tag">Embedded Systems</span>
+      <span class="mission-tag">Digital Twins</span>
+    </div>
+  </div>
+</section>
+
+<!-- Industries -->
+<section id="industries">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Industrial Domains</div>
+    <h2 class="section-title reveal">Industries</h2>
+    <p class="section-sub reveal">Five domains where PHINIX deploys research-driven engineering intelligence.</p>
+    <div class="industry-grid">
+
+      <div class="industry-card reveal reveal-delay-1">
+        <div class="industry-num">01</div>
+        <svg class="industry-icon" viewBox="0 0 44 44" fill="none">
+          <rect x="2" y="26" width="40" height="16" rx="2" stroke="#00b4ff" stroke-width="1.5"/>
+          <path d="M8 26V16l6-6h16l6 6v10" stroke="#00b4ff" stroke-width="1.5"/>
+          <circle cx="22" cy="20" r="4" stroke="#00b4ff" stroke-width="1.5"/>
+          <line x1="22" y1="2" x2="22" y2="10" stroke="#00b4ff" stroke-width="1.5" stroke-dasharray="2 2"/>
+        </svg>
+        <h3>Mining Systems</h3>
+        <p>Intelligent infrastructure for the underground economy.</p>
+        <div class="industry-items">
+          <span class="industry-item">Underground safety networks</span>
+          <span class="industry-item">Environmental monitoring</span>
+          <span class="industry-item">Autonomous operations</span>
+          <span class="industry-item">Digital ventilation control</span>
+        </div>
+      </div>
+
+      <div class="industry-card reveal reveal-delay-2">
+        <div class="industry-num">02</div>
+        <svg class="industry-icon" viewBox="0 0 44 44" fill="none">
+          <path d="M22 4L4 22h6v18h24V22h6L22 4z" stroke="#00b4ff" stroke-width="1.5"/>
+          <path d="M18 40V28h8v12" stroke="#00b4ff" stroke-width="1.5"/>
+          <circle cx="22" cy="20" r="3" stroke="#00b4ff" stroke-width="1.5"/>
+        </svg>
+        <h3>Energy Systems</h3>
+        <p>Smart grid technology and renewable energy analytics.</p>
+        <div class="industry-items">
+          <span class="industry-item">Smart grid integration</span>
+          <span class="industry-item">Renewable energy analytics</span>
+          <span class="industry-item">Predictive maintenance</span>
+          <span class="industry-item">Power quality systems</span>
+        </div>
+      </div>
+
+      <div class="industry-card reveal reveal-delay-3">
+        <div class="industry-num">03</div>
+        <svg class="industry-icon" viewBox="0 0 44 44" fill="none">
+          <rect x="4" y="12" width="16" height="20" rx="2" stroke="#00b4ff" stroke-width="1.5"/>
+          <rect x="24" y="8" width="16" height="28" rx="2" stroke="#00b4ff" stroke-width="1.5"/>
+          <path d="M20 22h4" stroke="#00b4ff" stroke-width="1.5"/>
+          <circle cx="12" cy="22" r="3" stroke="#00b4ff" stroke-width="1.5"/>
+          <circle cx="32" cy="22" r="3" stroke="#00b4ff" stroke-width="1.5"/>
+        </svg>
+        <h3>Industrial Automation</h3>
+        <p>Embedded control systems and robotics for industrial processes.</p>
+        <div class="industry-items">
+          <span class="industry-item">Embedded PLC systems</span>
+          <span class="industry-item">Industrial IoT networks</span>
+          <span class="industry-item">Robotic process control</span>
+          <span class="industry-item">Digital twin platforms</span>
+        </div>
+      </div>
+
+      <div class="industry-card reveal reveal-delay-4">
+        <div class="industry-num">04</div>
+        <svg class="industry-icon" viewBox="0 0 44 44" fill="none">
+          <circle cx="22" cy="22" r="6" stroke="#00b4ff" stroke-width="1.5"/>
+          <circle cx="8" cy="10" r="3" stroke="#00b4ff" stroke-width="1.5"/>
+          <circle cx="36" cy="10" r="3" stroke="#00b4ff" stroke-width="1.5"/>
+          <circle cx="8" cy="34" r="3" stroke="#00b4ff" stroke-width="1.5"/>
+          <circle cx="36" cy="34" r="3" stroke="#00b4ff" stroke-width="1.5"/>
+          <path d="M11 13l7.8 5.5M33 13l-7.8 5.5M11 31l7.8-5.5M33 31l-7.8-5.5" stroke="#00b4ff" stroke-width="1.5" opacity="0.5"/>
+        </svg>
+        <h3>Artificial Intelligence</h3>
+        <p>Machine learning and decision intelligence for real-world systems.</p>
+        <div class="industry-items">
+          <span class="industry-item">Computer vision systems</span>
+          <span class="industry-item">Anomaly detection</span>
+          <span class="industry-item">Autonomous decision agents</span>
+          <span class="industry-item">Industrial NLP</span>
+        </div>
+      </div>
+
+      <div class="industry-card reveal" style="grid-column: 1/-1">
+        <div class="industry-num">05</div>
+        <svg class="industry-icon" viewBox="0 0 44 44" fill="none">
+          <rect x="4" y="4" width="16" height="16" rx="1" stroke="#00b4ff" stroke-width="1.5"/>
+          <rect x="24" y="4" width="16" height="16" rx="1" stroke="#00b4ff" stroke-width="1.5"/>
+          <rect x="4" y="24" width="16" height="16" rx="1" stroke="#00b4ff" stroke-width="1.5"/>
+          <rect x="24" y="24" width="16" height="16" rx="1" stroke="#00b4ff" stroke-width="1.5"/>
+          <path d="M20 12h4M12 20v4M32 20v4M20 32h4" stroke="#00b4ff" stroke-width="1.5" opacity="0.5"/>
+        </svg>
+        <h3>Smart Infrastructure</h3>
+        <p>Intelligent monitoring, asset management, and predictive analytics across critical infrastructure — from water systems to transport networks.</p>
+        <div class="industry-items" style="flex-direction:row; flex-wrap:wrap; gap:8px 24px;">
+          <span class="industry-item">Asset health monitoring</span>
+          <span class="industry-item">Structural sensing systems</span>
+          <span class="industry-item">Fleet intelligence</span>
+          <span class="industry-item">SCADA integration</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Projects -->
+<section id="projects">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Featured Projects</div>
+    <h2 class="section-title reveal">Case Studies</h2>
+    <p class="section-sub reveal">Selected engineering deployments and research programmes.</p>
+
+    <div class="project-grid">
+
+      <div class="project-card large reveal">
+        <div class="project-bg pb-mine">
+          <svg class="project-bg-visual" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="mg1" cx="30%" cy="60%"><stop offset="0%" stop-color="#00b4ff" stop-opacity="0.4"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+            </defs>
+            <rect width="900" height="360" fill="url(#mg1)"/>
+            <g stroke="#00b4ff" stroke-width="0.5" opacity="0.3">
+              <line x1="0" y1="180" x2="900" y2="180"/>
+              <line x1="450" y1="0" x2="450" y2="360"/>
+              <circle cx="450" cy="180" r="80" fill="none"/>
+              <circle cx="450" cy="180" r="140" fill="none" opacity="0.5"/>
+              <circle cx="450" cy="180" r="200" fill="none" opacity="0.3"/>
+            </g>
+            <g fill="#00b4ff" opacity="0.6" class="circuit-svg">
+              <circle cx="450" cy="180" r="5"/>
+              <circle cx="330" cy="180" r="3"/>
+              <circle cx="570" cy="180" r="3"/>
+              <circle cx="450" cy="100" r="3"/>
+              <circle cx="450" cy="260" r="3"/>
+            </g>
+          </svg>
+        </div>
+        <div class="project-arrow">↗</div>
+        <div class="project-content">
+          <div class="project-tag">Case Study 01 · Mining · AI</div>
+          <h3>Autonomous Mine Safety Network</h3>
+          <p class="project-desc">Distributed underground sensing platform integrating environmental monitoring, gas detection, and AI-driven risk assessment for real-time mine safety visibility.</p>
+          <div class="project-meta">
+            <span>IoT + Edge AI</span>
+            <span>Underground Sensing</span>
+            <span>Real-time Analytics</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-bg pb-energy">
+          <svg class="project-bg-visual" viewBox="0 0 440 300" xmlns="http://www.w3.org/2000/svg">
+            <defs><radialGradient id="eg1" cx="70%" cy="40%"><stop offset="0%" stop-color="#00ff88" stop-opacity="0.3"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs>
+            <rect width="440" height="300" fill="url(#eg1)"/>
+            <polyline points="20,200 80,150 140,170 200,100 260,120 320,60 380,80 440,40" stroke="#00ff88" stroke-width="1.5" fill="none" opacity="0.5"/>
+            <polyline points="20,220 80,190 140,210 200,160 260,180 320,130 380,150 440,110" stroke="#00b4ff" stroke-width="1" fill="none" opacity="0.3"/>
+          </svg>
+        </div>
+        <div class="project-arrow">↗</div>
+        <div class="project-content">
+          <div class="project-tag">Case Study 02 · Energy</div>
+          <h3>Smart Energy Analytics Platform</h3>
+          <p class="project-desc">Real-time power optimisation and renewable integration analytics for utility-scale operations.</p>
+          <div class="project-meta">
+            <span>Grid Analytics</span>
+            <span>SCADA</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card reveal reveal-delay-1">
+        <div class="project-bg pb-ai">
+          <svg class="project-bg-visual" viewBox="0 0 440 300" xmlns="http://www.w3.org/2000/svg">
+            <defs><radialGradient id="ag1" cx="50%" cy="50%"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs>
+            <rect width="440" height="300" fill="url(#ag1)"/>
+            <g stroke="#8be9fd" stroke-width="0.5" opacity="0.4">
+              <circle cx="220" cy="150" r="60"/>
+              <circle cx="220" cy="150" r="100"/>
+              <circle cx="220" cy="150" r="140"/>
+            </g>
+            <g fill="#8be9fd" opacity="0.5">
+              <circle cx="220" cy="90" r="4"/>
+              <circle cx="280" cy="150" r="4"/>
+              <circle cx="220" cy="210" r="4"/>
+              <circle cx="160" cy="150" r="4"/>
+            </g>
+          </svg>
+        </div>
+        <div class="project-arrow">↗</div>
+        <div class="project-content">
+          <div class="project-tag">Case Study 03 · AI · Vision</div>
+          <h3>Industrial AI Inspection</h3>
+          <p class="project-desc">Computer vision defect detection system achieving sub-millimetre precision for manufacturing quality control.</p>
+          <div class="project-meta">
+            <span>PyTorch</span>
+            <span>OpenCV</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Technology Stack -->
+<section id="stack">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Operating Stack</div>
+    <h2 class="section-title reveal">Technology</h2>
+    <p class="section-sub reveal">The engineering and software tools powering PHINIX deployments.</p>
+
+    <div class="stack-grid reveal">
+      <!-- Each tech with a minimal SVG icon -->
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M9 21l4.5-13 4 8 2.5-5 3 10" stroke="#00b4ff" stroke-width="1.2" fill="none"/>
+          </svg>
+        </div>
+        <div class="stack-name">Python</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <rect x="4" y="4" width="10" height="10" stroke="#00b4ff" stroke-width="1.2"/>
+            <rect x="18" y="4" width="10" height="10" stroke="#00b4ff" stroke-width="1.2"/>
+            <rect x="4" y="18" width="10" height="10" stroke="#00b4ff" stroke-width="1.2"/>
+            <rect x="18" y="18" width="10" height="10" stroke="#00b4ff" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="stack-name">PyTorch</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <circle cx="16" cy="16" r="6" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M16 2v6M16 24v6M2 16h6M24 16h6" stroke="#00b4ff" stroke-width="1.2"/>
+            <circle cx="16" cy="2" r="2" fill="#00b4ff"/>
+            <circle cx="16" cy="30" r="2" fill="#00b4ff"/>
+            <circle cx="2" cy="16" r="2" fill="#00b4ff"/>
+            <circle cx="30" cy="16" r="2" fill="#00b4ff"/>
+          </svg>
+        </div>
+        <div class="stack-name">TensorFlow</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <circle cx="10" cy="10" r="4" stroke="#00b4ff" stroke-width="1.2"/>
+            <circle cx="22" cy="22" r="4" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M13.8 13.8L18.2 18.2" stroke="#00b4ff" stroke-width="1.2" stroke-dasharray="2 2"/>
+            <rect x="4" y="20" width="8" height="8" rx="1" stroke="#00b4ff" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="stack-name">OpenCV</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <rect x="8" y="4" width="16" height="24" rx="2" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M12 10h8M12 14h8M12 18h5" stroke="#00b4ff" stroke-width="1.2"/>
+            <circle cx="24" cy="24" r="5" fill="#00b4ff" opacity="0.2" stroke="#00b4ff" stroke-width="1"/>
+            <path d="M22 24l1.5 1.5L26 22" stroke="#00b4ff" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="stack-name">ESP32</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <rect x="6" y="6" width="20" height="20" rx="2" stroke="#00b4ff" stroke-width="1.2"/>
+            <rect x="10" y="10" width="12" height="12" rx="1" stroke="#00b4ff" stroke-width="1"/>
+            <path d="M2 12h4M2 20h4M28 12h2M28 20h2M12 2v4M20 2v4M12 28v2M20 28v2" stroke="#00b4ff" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="stack-name">STM32</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <path d="M16 4C9.4 4 4 9.4 4 16s5.4 12 12 12 12-5.4 12-12S22.6 4 16 4z" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M10 16h12M16 10v12" stroke="#00b4ff" stroke-width="1.2"/>
+            <circle cx="16" cy="16" r="3" fill="#00b4ff" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="stack-name">ROS</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <path d="M4 24L16 8l12 16H4z" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M10 24l6-8 6 8" stroke="#00b4ff" stroke-width="1" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="stack-name">MATLAB</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <rect x="4" y="8" width="24" height="16" rx="2" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M10 14h12M10 18h8" stroke="#00b4ff" stroke-width="1.2"/>
+            <circle cx="24" cy="8" r="4" fill="#00b4ff" opacity="0.2" stroke="#00b4ff" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="stack-name">Docker</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <path d="M6 20C4.3 18.3 4 15.7 5.3 13.7 6.6 11.7 9 11 11 12c.7-3.3 3.7-5.7 7-5.7 3.7 0 6.7 3 6.7 6.7h.3c2.2 0 4 1.8 4 4s-1.8 4-4 4H8" stroke="#00b4ff" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="stack-name">AWS</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <path d="M16 4l10 6v12l-10 6L6 22V10L16 4z" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M16 4v20M6 10l10 6 10-6" stroke="#00b4ff" stroke-width="1" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="stack-name">Azure</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+            <ellipse cx="16" cy="10" rx="10" ry="4" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M6 10v12c0 2.2 4.5 4 10 4s10-1.8 10-4V10" stroke="#00b4ff" stroke-width="1.2"/>
+            <path d="M6 16c0 2.2 4.5 4 10 4s10-1.8 10-4" stroke="#00b4ff" stroke-width="1" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="stack-name">PostgreSQL</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Research Lab -->
+<section id="lab">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Research Division</div>
+    <h2 class="section-title reveal">The Lab</h2>
+    <p class="section-sub reveal">Active research programmes across engineering and applied intelligence.</p>
+    <div class="lab-grid">
+      <div class="lab-nodes reveal">
+        <canvas id="lab-canvas"></canvas>
+      </div>
+      <div class="lab-areas reveal">
+        <div class="lab-area active" data-index="0">
+          <div class="lab-area-num">01</div>
+          <h4>Industrial Artificial Intelligence</h4>
+          <p>Machine learning architectures trained on industrial process data for predictive and prescriptive analytics.</p>
+        </div>
+        <div class="lab-area" data-index="1">
+          <div class="lab-area-num">02</div>
+          <h4>Signal Processing</h4>
+          <p>Advanced DSP for vibration analysis, acoustic emissions, and electromagnetic characterisation.</p>
+        </div>
+        <div class="lab-area" data-index="2">
+          <div class="lab-area-num">03</div>
+          <h4>Embedded Systems</h4>
+          <p>Real-time firmware, low-power edge intelligence, and custom hardware design for harsh environments.</p>
+        </div>
+        <div class="lab-area" data-index="3">
+          <div class="lab-area-num">04</div>
+          <h4>Renewable Energy Research</h4>
+          <p>Photovoltaic system optimisation, battery management, and grid-scale storage modelling.</p>
+        </div>
+        <div class="lab-area" data-index="4">
+          <div class="lab-area-num">05</div>
+          <h4>Autonomous Systems</h4>
+          <p>Sensor fusion, simultaneous localisation and mapping, and autonomous decision-making for industrial robots.</p>
+        </div>
+        <div class="lab-area" data-index="5">
+          <div class="lab-area-num">06</div>
+          <h4>Computer Vision</h4>
+          <p>Object detection, defect localisation, and 3D reconstruction for industrial quality and safety inspection.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Metrics -->
+<section id="metrics">
+  <div class="section-inner" style="padding-top:80px;padding-bottom:80px;">
+    <div class="metrics-grid">
+      <div class="metric-card reveal">
+        <span class="metric-num" data-count="15">0</span>
+        <span class="metric-label">Research Domains</span>
+      </div>
+      <div class="metric-card reveal reveal-delay-1">
+        <span class="metric-num" data-count="5">0</span>
+        <span class="metric-label">Industries Served</span>
+      </div>
+      <div class="metric-card reveal reveal-delay-2">
+        <span class="metric-num" data-count="100">0</span>
+        <span class="metric-label">Engineering Concepts</span>
+      </div>
+      <div class="metric-card reveal reveal-delay-3">
+        <span class="metric-num">24/7</span>
+        <span class="metric-label">Innovation Cycle</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Timeline -->
+<section id="timeline">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Company Timeline</div>
+    <h2 class="section-title reveal">Our Journey</h2>
+    <div class="timeline-track" style="margin-top:60px;">
+      <div class="timeline-item active reveal">
+        <div class="timeline-year">2024</div>
+        <h3>PHINIX Founded</h3>
+        <p>Established in Johannesburg with a mandate to engineer intelligent systems for South African industry and beyond.</p>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2025</div>
+        <h3>Industrial Research Programmes</h3>
+        <p>Launch of active research across mining safety, embedded AI, and renewable energy analytics.</p>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2026</div>
+        <h3>AI Systems Division</h3>
+        <p>Dedicated AI engineering division for computer vision, decision intelligence, and autonomous systems.</p>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2028</div>
+        <h3>Autonomous Platforms</h3>
+        <p>First fully autonomous industrial monitoring platform deployed at scale across multiple sectors.</p>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-year">2030</div>
+        <h3>Global Industrial Intelligence Network</h3>
+        <p>PHINIX intelligence infrastructure operating across African industrial hubs and international partners.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="contact-layout">
+      <div class="contact-info">
+        <div class="section-eyebrow reveal">Get in Touch</div>
+        <h2 class="section-title reveal">Initiate<br>Contact</h2>
+        <p class="reveal" style="margin-top:24px;">Whether you represent a mining operation, energy utility, manufacturing facility, or research institution — PHINIX engineers solutions at the frontier of what's technically possible.</p>
+        <div class="contact-detail reveal">
+          <div class="label">Location</div>
+          <div class="value">Johannesburg, Gauteng, South Africa</div>
+        </div>
+        <div class="contact-detail reveal">
+          <div class="label">Focus</div>
+          <div class="value">Industrial Intelligence · R&D · Engineering</div>
+        </div>
+        <div class="contact-detail reveal">
+          <div class="label">Status</div>
+          <div class="value" style="color:var(--accent);">● Accepting Projects</div>
+        </div>
+      </div>
+
+      <div class="terminal reveal">
+        <div class="terminal-header">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <span class="terminal-title">PHINIX — CONTACT TERMINAL</span>
+        </div>
+        <div class="terminal-line">
+          <div class="terminal-prompt">> IDENTIFY.NAME</div>
+          <input class="terminal-input" type="text" placeholder="Full Name" autocomplete="off">
+        </div>
+        <div class="terminal-line">
+          <div class="terminal-prompt">> IDENTIFY.ORGANISATION</div>
+          <input class="terminal-input" type="text" placeholder="Company or Institution" autocomplete="off">
+        </div>
+        <div class="terminal-line">
+          <div class="terminal-prompt">> IDENTIFY.EMAIL</div>
+          <input class="terminal-input" type="email" placeholder="contact@organisation.com" autocomplete="off">
+        </div>
+        <div class="terminal-line">
+          <div class="terminal-prompt">> DESCRIBE.MISSION_OBJECTIVE</div>
+          <textarea class="terminal-input" placeholder="Describe your engineering challenge or research interest…"></textarea>
+        </div>
+        <button class="terminal-submit">→ TRANSMIT MESSAGE</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="logo">PHIN<span>IX</span></div>
+      <p>Engineering Intelligence for Industrial Civilisation. Research-driven. Deployment-ready.</p>
+      <div class="footer-location">JOHANNESBURG · SOUTH AFRICA</div>
+    </div>
+    <div class="footer-col">
+      <h5>Capabilities</h5>
+      <ul>
+        <li><a href="#">Industrial AI</a></li>
+        <li><a href="#">Embedded Systems</a></li>
+        <li><a href="#">Digital Twins</a></li>
+        <li><a href="#">Computer Vision</a></li>
+        <li><a href="#">IoT Networks</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Industries</h5>
+      <ul>
+        <li><a href="#">Mining</a></li>
+        <li><a href="#">Energy</a></li>
+        <li><a href="#">Automation</a></li>
+        <li><a href="#">Infrastructure</a></li>
+        <li><a href="#">Research</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Projects</a></li>
+        <li><a href="#">Research</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Technology</h5>
+      <ul>
+        <li><a href="#">Stack</a></li>
+        <li><a href="#">Lab</a></li>
+        <li><a href="#">Publications</a></li>
+        <li><a href="#">GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2024 PHINIX · ALL RIGHTS RESERVED · JOHANNESBURG</span>
+    <div class="footer-socials">
+      <a href="#" class="footer-social">Li</a>
+      <a href="#" class="footer-social">Gh</a>
+      <a href="#" class="footer-social">X</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── CURSOR ── */
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mouseX=0,mouseY=0,ringX=0,ringY=0;
+document.addEventListener('mousemove', e=>{
+  mouseX=e.clientX; mouseY=e.clientY;
+  cursor.style.left=mouseX+'px';
+  cursor.style.top=mouseY+'px';
+});
+function animateRing(){
+  ringX+=(mouseX-ringX)*0.12;
+  ringY+=(mouseY-ringY)*0.12;
+  cursorRing.style.left=ringX+'px';
+  cursorRing.style.top=ringY+'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+document.querySelectorAll('a,button,.industry-card,.project-card,.stack-item,.lab-area').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    cursor.style.transform='translate(-50%,-50%) scale(2.5)';
+    cursorRing.style.width='60px';cursorRing.style.height='60px';
+    cursorRing.style.borderColor='rgba(0,180,255,0.6)';
+  });
+  el.addEventListener('mouseleave',()=>{
+    cursor.style.transform='translate(-50%,-50%) scale(1)';
+    cursorRing.style.width='40px';cursorRing.style.height='40px';
+    cursorRing.style.borderColor='rgba(0,180,255,0.4)';
+  });
+});
+
+/* ── SCROLL BAR ── */
+window.addEventListener('scroll',()=>{
+  const pct=window.scrollY/(document.documentElement.scrollHeight-window.innerHeight)*100;
+  document.getElementById('scroll-bar').style.width=pct+'%';
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>60);
+});
+
+/* ── HERO PARTICLE CANVAS ── */
+(function(){
+  const canvas=document.getElementById('hero-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[];
+  function resize(){ W=canvas.width=canvas.offsetWidth; H=canvas.height=canvas.offsetHeight; }
+  window.addEventListener('resize',()=>{resize();init();});
+  resize();
+  function Particle(){
+    this.x=Math.random()*W;
+    this.y=Math.random()*H;
+    this.vx=(Math.random()-.5)*0.4;
+    this.vy=(Math.random()-.5)*0.4;
+    this.r=Math.random()*1.5+0.5;
+    this.opacity=Math.random()*0.5+0.1;
+  }
+  Particle.prototype.update=function(){
+    this.x+=this.vx; this.y+=this.vy;
+    if(this.x<0||this.x>W)this.vx*=-1;
+    if(this.y<0||this.y>H)this.vy*=-1;
+  };
+  function init(){
+    particles=[];
+    const count=Math.floor(W*H/6000);
+    for(let i=0;i<count;i++) particles.push(new Particle());
+  }
+  init();
+  let mx=-9999,my=-9999;
+  document.addEventListener('mousemove',e=>{ mx=e.clientX; my=e.clientY; });
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // connections
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x;
+        const dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){
+          ctx.beginPath();
+          ctx.strokeStyle=`rgba(0,180,255,${0.12*(1-d/120)})`;
+          ctx.lineWidth=0.5;
+          ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.stroke();
+        }
+      }
+      // mouse attraction
+      const dx=particles[i].x-mx;
+      const dy=particles[i].y-my;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<200){
+        ctx.beginPath();
+        ctx.strokeStyle=`rgba(0,180,255,${0.3*(1-d/200)})`;
+        ctx.lineWidth=0.5;
+        ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(mx,my);
+        ctx.stroke();
+      }
+      // dot
+      ctx.beginPath();
+      ctx.arc(particles[i].x,particles[i].y,particles[i].r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,180,255,${particles[i].opacity})`;
+      ctx.fill();
+      particles[i].update();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── LAB CANVAS (neural network) ── */
+(function(){
+  const canvas=document.getElementById('lab-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+  window.addEventListener('resize',resize);
+  resize();
+  const areas=['Industrial AI','Signal Proc.','Embedded','Renewables','Autonomous','Comp. Vision'];
+  const nodes=areas.map((label,i)=>{
+    const angle=(i/areas.length)*Math.PI*2-Math.PI/2;
+    const r=Math.min(W,H)*0.32;
+    return {
+      x:W/2+Math.cos(angle)*r,
+      y:H/2+Math.sin(angle)*r,
+      label,
+      pulse:Math.random()*Math.PI*2,
+      active:false
+    };
+  });
+  const center={x:W/2,y:H/2};
+  let activeIdx=0;
+  setInterval(()=>{
+    nodes.forEach(n=>n.active=false);
+    nodes[activeIdx].active=true;
+    activeIdx=(activeIdx+1)%nodes.length;
+    // sync with lab areas
+    document.querySelectorAll('.lab-area').forEach((el,i)=>{
+      el.classList.toggle('active',i===activeIdx);
+    });
+  },1800);
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // lines from center to nodes
+    nodes.forEach((n,i)=>{
+      const prog=(Date.now()/2000+i/nodes.length)%1;
+      const lx=center.x+(n.x-center.x)*prog;
+      const ly=center.y+(n.y-center.y)*prog;
+      ctx.beginPath();
+      ctx.strokeStyle=n.active?'rgba(0,180,255,0.5)':'rgba(0,180,255,0.12)';
+      ctx.lineWidth=n.active?1.5:0.5;
+      ctx.moveTo(center.x,center.y);
+      ctx.lineTo(n.x,n.y);
+      ctx.stroke();
+      // pulse dot
+      ctx.beginPath();
+      ctx.arc(lx,ly,3,0,Math.PI*2);
+      ctx.fillStyle=n.active?'rgba(0,180,255,0.9)':'rgba(0,180,255,0.4)';
+      ctx.fill();
+    });
+    // center node
+    const t=Date.now()/1000;
+    ctx.beginPath();
+    ctx.arc(center.x,center.y,8+Math.sin(t*2)*2,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,180,255,0.15)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(center.x,center.y,5,0,Math.PI*2);
+    ctx.fillStyle='var(--accent)';
+    ctx.fill();
+    // outer glow ring
+    ctx.beginPath();
+    ctx.arc(center.x,center.y,16+Math.sin(t*1.5)*4,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,180,255,0.15)';
+    ctx.lineWidth=1;
+    ctx.stroke();
+    // outer nodes
+    nodes.forEach(n=>{
+      n.pulse+=0.02;
+      const glow=5+Math.sin(n.pulse)*2;
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,glow,0,Math.PI*2);
+      ctx.fillStyle=n.active?'rgba(0,180,255,0.2)':'rgba(0,180,255,0.06)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,4,0,Math.PI*2);
+      ctx.fillStyle=n.active?'#00b4ff':'rgba(0,180,255,0.4)';
+      ctx.fill();
+      // label
+      ctx.fillStyle=n.active?'#eaf7ff':'rgba(90,127,150,0.8)';
+      ctx.font=`${n.active?'500':'400'} 10px 'JetBrains Mono', monospace`;
+      ctx.textAlign='center';
+      ctx.fillText(n.label,n.x,n.y+(n.y<H/2?-14:20));
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── MOBILE MENU ── */
+const hamburger=document.getElementById('hamburger');
+const mobileMenu=document.getElementById('mobileMenu');
+hamburger.addEventListener('click',()=>{
+  mobileMenu.classList.toggle('open');
+  document.body.style.overflow=mobileMenu.classList.contains('open')?'hidden':'';
+  const spans=hamburger.querySelectorAll('span');
+  if(mobileMenu.classList.contains('open')){
+    spans[0].style.transform='rotate(45deg) translate(4.5px,4.5px)';
+    spans[1].style.opacity='0';
+    spans[2].style.transform='rotate(-45deg) translate(4.5px,-4.5px)';
+  } else {
+    spans.forEach(s=>{s.style.transform='';s.style.opacity='';});
+  }
+});
+document.querySelectorAll('.mobile-link').forEach(a=>{
+  a.addEventListener('click',()=>{
+    mobileMenu.classList.remove('open');
+    document.body.style.overflow='';
+    hamburger.querySelectorAll('span').forEach(s=>{s.style.transform='';s.style.opacity='';});
+  });
+});
+
+/* ── INTERSECTION OBSERVER (reveal + counters) ── */
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add('visible');
+      // counter
+      const num=entry.target.querySelector('[data-count]')||
+        (entry.target.hasAttribute&&entry.target.hasAttribute('data-count')?entry.target:null);
+      if(num) animateCount(num);
+      entry.target.querySelectorAll('[data-count]').forEach(animateCount);
+      io.unobserve(entry.target);
+    }
+  });
+},{threshold:0.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+function animateCount(el){
+  const target=parseInt(el.getAttribute('data-count'));
+  if(isNaN(target)||el._counted) return;
+  el._counted=true;
+  const dur=1600;
+  const start=performance.now();
+  function step(now){
+    const p=Math.min((now-start)/dur,1);
+    const ease=1-Math.pow(1-p,3);
+    el.textContent=Math.floor(ease*target)+(p<1?'':'+');
+    if(p<1) requestAnimationFrame(step);
+    else el.textContent=target+'+';
+  }
+  requestAnimationFrame(step);
+}
+
+/* ── TIMELINE SCROLL ACTIVATION ── */
+const timelineItems=document.querySelectorAll('.timeline-item');
+const tio=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add('active');
+  });
+},{threshold:0.4});
+timelineItems.forEach(item=>tio.observe(item));
+
+/* ── LAB AREA CLICK ── */
+document.querySelectorAll('.lab-area').forEach((area,i)=>{
+  area.addEventListener('click',()=>{
+    document.querySelectorAll('.lab-area').forEach(a=>a.classList.remove('active'));
+    area.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
